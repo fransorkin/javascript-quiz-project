@@ -59,7 +59,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /************  TIMER  ************/
 
-  let timer;
+let timer;
+
+  // INICIAR EL TEMPORIZADOR
+  timer = setInterval(() => {
+    // Restar 1 segundo
+    quiz.timeRemaining--;
+
+    // Actualizar el texto del temporizador (formato 02:00)
+    const minutes = String(Math.floor(quiz.timeRemaining / 60)).padStart(2, '0');
+    const seconds = String(quiz.timeRemaining % 60).padStart(2, '0');
+    timeRemainingContainer.innerText = `${minutes}:${seconds}`;
+
+    // Si se acaba el tiempo → terminar el quiz
+    if (quiz.timeRemaining <= 0) {
+      clearInterval(timer);
+      showResults();
+    }
+  }, 1000);
+
 
 
   /************  EVENT LISTENERS  ************/
@@ -67,22 +85,43 @@ document.addEventListener("DOMContentLoaded", () => {
   nextButton.addEventListener("click", nextButtonHandler);
 
   // Restart button - Reiniciar el cuestionario
+    // Restart button - Reiniciar el cuestionario
   const restartButton = document.querySelector("#restartButton");
   restartButton.addEventListener("click", () => {
-    // 1. Ocultar resultados
+    // 1. Ocultar resultados y mostrar quiz
     endView.style.display = "none";
-    // 2. Mostrar el quiz de nuevo
     quizView.style.display = "block";
 
-    // 3. Reiniciar todo
+    // 2. Reiniciar datos del quiz
     quiz.currentQuestionIndex = 0;
     quiz.correctAnswers = 0;
-    quiz.shuffleQuestions();  // ¡Barajar de nuevo para que sea diferente!
+    quiz.shuffleQuestions();
+
+    // REINICIAR EL TEMPORIZADOR (¡esto es lo nuevo!)
+    clearInterval(timer);                    // parar el anterior
+    quiz.timeRemaining = quizDuration;       // volver al tiempo original (120)
+    
+    // Actualizar visualmente el contador
+    const minutes = String(Math.floor(quiz.timeRemaining / 60)).padStart(2, '0');
+    const seconds = String(quiz.timeRemaining % 60).padStart(2, '0');
+    timeRemainingContainer.innerText = `${minutes}:${seconds}`;
+
+    // Volver a iniciar el temporizador
+    timer = setInterval(() => {
+      quiz.timeRemaining--;
+      const m = String(Math.floor(quiz.timeRemaining / 60)).padStart(2, '0');
+      const s = String(quiz.timeRemaining % 60).padStart(2, '0');
+      timeRemainingContainer.innerText = `${m}:${s}`;
+
+      if (quiz.timeRemaining <= 0) {
+        clearInterval(timer);
+        showResults();
+      }
+    }, 1000);
 
     // Mostrar primera pregunta
     showQuestion();
   });
-
   /************  FUNCTIONS  ************/
 
   // showQuestion() - Displays the current question and its choices
@@ -139,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   
-  function nextButtonHandler() {
+  function nextButtonHandler () {
     const answerOptions = document.querySelectorAll('input[name="choice"]');
 
   // 2. Recorrerlos y ver cuál está seleccionado
@@ -172,11 +211,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 function showResults() {
+  clearInterval(timer);  // ← ESTA LÍNEA ES LA CLAVE
 
   quizView.style.display = "none";
-
   endView.style.display = "flex";
-
   resultContainer.innerText = `You scored ${quiz.correctAnswers} out of ${quiz.questions.length} correct answers!`;
 }
   }
